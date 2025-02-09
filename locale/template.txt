@@ -1,0 +1,8 @@
+# textdomain: bleeding
+Bandage=
+-!- You have no bleeding and cannot use bandage.=
+Medecine bag=
+-!- You have full healts and cannot use medecine.=
+Syringe empty=
+Syringe with blood=
+Syringe full=

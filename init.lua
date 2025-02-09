@@ -1,4 +1,13 @@
-local bloods = {}
+bleeding = {}
+
+local bleeding_path = minetest.get_modpath("bleeding")
+
+local S = minetest.get_translator("bleeding")
+
+bleeding.get_translator = S
+bleeding.bleeding = {}
+
+dofile(bleeding_path.."/medecine.lua")
 
 local effects = {
     {text = "bleeding_screen1.png", speed = 0.9},
@@ -29,17 +38,17 @@ end
 local timer = 0
 minetest.register_globalstep(function(dtime)
     timer = timer + dtime
-    if timer >= 1 then
+    if timer >= 1.3 then
         timer = 0
-        for key, value in pairs(bloods) do
+        for key, value in pairs(bleeding.bleeding) do
             local player = minetest.get_player_by_name(key)
             if value.bleeding then
                 player:set_hp(player:get_hp() - 1)
                 spawn_blood_particles(player:get_pos(), 10)
-                if bloods[key].bleeding <= 1 then
-                    bloods[key].bleeding = nil
+                if bleeding.bleeding[key] and bleeding.bleeding[key].bleeding <= 1 then
+                    bleeding.bleeding[key].bleeding = nil
                 else
-                    bloods[key].bleeding = bloods[key].bleeding - 1
+                    bleeding.bleeding[key].bleeding = bleeding.bleeding[key].bleeding - 1
                 end
             end
         end
@@ -48,10 +57,6 @@ end)
 
 minetest.register_on_player_hpchange(function(player, hp_change, reason)
     local name = player:get_player_name()
-    if hp_change > 0 and bloods[name] then
-        player:hud_remove(bloods[name].hud)
-        bloods[name] = nil
-    end
  
     if hp_change >= 0 or math.abs(hp_change) > player:get_hp() then return end
 
@@ -73,11 +78,12 @@ minetest.register_on_player_hpchange(function(player, hp_change, reason)
         stage = 4
         spawn_blood_particles(pos, 32)
     end
-    if bloods[name] then
-       return
+    if bleeding.bleeding[name] then
+        return
     end
-    bloods[name] = {}
-    bloods[name].hud = player:hud_add({
+    bleeding.bleeding[name] = {}
+    bleeding.bleeding[name].stage = stage
+    bleeding.bleeding[name].hud = player:hud_add({
 		hud_elem_type = "image",
 		position = {x = 0.5, y = 0.5},
 		scale = {x = -100,y = -100},
@@ -87,35 +93,35 @@ minetest.register_on_player_hpchange(function(player, hp_change, reason)
 	})
 
     for i = stage, 1, -1 do
+        if i > 1 then
+            bleeding.bleeding[name].bleeding = i + (bleeding.bleeding[name].bleeding or 0)
+        end
         minetest.after(2 * (stage - i + 1), function()
-            if bloods[name] then
-                player:hud_change(bloods[name].hud, "text", effects[i].text)
-                if i > 1 then
-                    bloods[name].bleeding = i
-                end
+            if bleeding.bleeding[name] then
+                player:hud_change(bleeding.bleeding[name].hud, "text", effects[i].text)
             end
         end)
     end
 
     minetest.after(2*stage+1, function()
-        if bloods[name] then
-            player:hud_remove(bloods[name].hud)
-            bloods[name] = nil 
+        if bleeding.bleeding[name] then
+            player:hud_remove(bleeding.bleeding[name].hud)
+            bleeding.bleeding[name] = nil 
         end
     end)
 end)
 
 minetest.register_on_respawnplayer(function(player)
     local name = player:get_player_name()
-    if bloods[name] then
-        player:hud_remove(bloods[name].hud)
-        bloods[name] = nil
+    if bleeding.bleeding[name] then
+        player:hud_remove(bleeding.bleeding[name].hud)
+        bleeding.bleeding[name] = nil
     end
 end)
 
 minetest.register_on_leaveplayer(function(player)
     local name = player:get_player_name()
-    if bloods[name] then
-        bloods[name] = nil
+    if bleeding.bleeding[name] then
+        bleeding.bleeding[name] = nil
     end
 end)

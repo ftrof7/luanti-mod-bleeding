@@ -1,0 +1,8 @@
+# textdomain: bleeding
+Bandage=Бинт
+-!- You have no bleeding and cannot use bandage.=-!- У вас нет кровотечения и вы не можете использовать повязку.
+Medecine bag=Аптечка
+-!- You have full healts and cannot use medecine.=-!- У вас полное здоровье и вы не можете использовать лекарства.
+Syringe empty=Шприц пустой
+Syringe with blood=Шприц с кровью
+Syringe full=Шприц полный
